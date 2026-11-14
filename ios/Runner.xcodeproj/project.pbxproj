@@ -155,6 +155,8 @@
 		D15500000000000000000102 /* SettingsSharedOwnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D15500000000000000000101 /* SettingsSharedOwnerTests.swift */; };
 		D15500000000000000000202 /* SettingsPreferenceMigrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D15500000000000000000201 /* SettingsPreferenceMigrationTests.swift */; };
 		C0AD00000000000000000102 /* CommandDashboardAdoptionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0AD00000000000000000101 /* CommandDashboardAdoptionTests.swift */; };
+		A11C00000000000000000001 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = A11C00000000000000000007 /* Localizable.strings */; };
+		A11C00000000000000000002 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = A11C00000000000000000008 /* InfoPlist.strings */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -341,6 +343,10 @@
 		D15500000000000000000101 /* SettingsSharedOwnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsSharedOwnerTests.swift; sourceTree = "<group>"; };
 		D15500000000000000000201 /* SettingsPreferenceMigrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsPreferenceMigrationTests.swift; sourceTree = "<group>"; };
 		C0AD00000000000000000101 /* CommandDashboardAdoptionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandDashboardAdoptionTests.swift; sourceTree = "<group>"; };
+		A11C00000000000000000003 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		A11C00000000000000000004 /* zh-Hant */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hant"; path = "zh-Hant.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		A11C00000000000000000005 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
+		A11C00000000000000000006 /* zh-Hant */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hant"; path = "zh-Hant.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -484,6 +490,8 @@
 				C0DE000000000000000006B1 /* MulticamCameraSettings.swift */,
 				C0DE000000000000000006B3 /* MulticamPicture.swift */,
 				97C146FA1CF9000F007C117D /* Main.storyboard */,
+				A11C00000000000000000007 /* Localizable.strings */,
+				A11C00000000000000000008 /* InfoPlist.strings */,
 				97C146FD1CF9000F007C117D /* Assets.xcassets */,
 				97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */,
 				97C147021CF9000F007C117D /* Info.plist */,
@@ -699,6 +707,8 @@
 			knownRegions = (
 				en,
 				Base,
+				"zh-Hans",
+				"zh-Hant",
 			);
 			mainGroup = 97C146E51CF9000F007C117D;
 			packageReferences = (
@@ -735,6 +745,8 @@
 				97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */,
 				FC5719B6AC51426FBF028301 /* PrivacyInfo.xcprivacy in Resources */,
 				97C146FC1CF9000F007C117D /* Main.storyboard in Resources */,
+				A11C00000000000000000001 /* Localizable.strings in Resources */,
+				A11C00000000000000000002 /* InfoPlist.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -964,6 +976,24 @@
 				97C147001CF9000F007C117D /* Base */,
 			);
 			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+		A11C00000000000000000007 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				A11C00000000000000000003 /* zh-Hans */,
+				A11C00000000000000000004 /* zh-Hant */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+		A11C00000000000000000008 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				A11C00000000000000000005 /* zh-Hans */,
+				A11C00000000000000000006 /* zh-Hant */,
+			);
+			name = InfoPlist.strings;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */
