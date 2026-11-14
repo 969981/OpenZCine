@@ -1,0 +1,150 @@
+name: Upstream sync and automatic Android release
+
+on:
+  schedule:
+    - cron: '43 */6 * * *'
+  workflow_dispatch:
+    inputs:
+      force_build:
+        description: Build even if upstream has no new commits
+        type: boolean
+        default: true
+  push:
+    paths:
+      - '.github/workflows/upstream-sync-release.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: upstream-sync-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Sync upstream
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    outputs:
+      changed: ${{ steps.merge.outputs.changed }}
+      upstream_sha: ${{ steps.merge.outputs.upstream_sha }}
+      synced_sha: ${{ steps.merge.outputs.synced_sha }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Merge new upstream commits
+        id: merge
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote add upstream https://github.com/erik-sutton95/OpenZCine.git
+          git fetch --no-tags upstream '+refs/heads/main:refs/remotes/upstream/main'
+          upstream_sha="$(git rev-parse refs/remotes/upstream/main)"
+          echo "upstream_sha=$upstream_sha" >> "$GITHUB_OUTPUT"
+          if git merge-base --is-ancestor "$upstream_sha" HEAD; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            git merge --no-edit -m "chore: sync upstream $upstream_sha" "$upstream_sha"
+            git push origin "HEAD:refs/heads/main"
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+          echo "synced_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+  build:
+    name: Android and Wear OS APKs
+    needs: sync
+    if: >-
+      needs.sync.outputs.changed == 'true' ||
+      github.event_name == 'push' ||
+      (github.event_name == 'workflow_dispatch' && inputs.force_build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.sync.outputs.synced_sha }}
+          persist-credentials: false
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+      - name: Check out pinned OpenCine next to the repository
+        run: ./scripts/checkout-opencine.sh
+      - name: Set up Android NDK 27
+        uses: nttld/setup-ndk@ed92fe6cadad69be94a966a7ee3271275e62f779 # v1.6.0
+        with:
+          ndk-version: r27c
+          link-to-sdk: true
+      - name: Install Swift Android SDK
+        run: ./scripts/ci-install-swift-android.sh
+      - name: Test and build Android APKs
+        working-directory: Apps/Android
+        env:
+          SWIFT_ANDROID_SDK_ID: swift-6.3.3-RELEASE_android
+        run: |
+          set -euo pipefail
+          ./gradlew --no-daemon test :app:assembleDebug :wear:assembleDebug
+      - name: Verify and collect installable APKs
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          app="Apps/Android/app/build/outputs/apk/debug/app-debug.apk"
+          wear="Apps/Android/wear/build/outputs/apk/debug/wear-debug.apk"
+          test -s "$app"
+          test -s "$wear"
+          unzip -Z1 "$app" | grep -q '^lib/arm64-v8a/libOpenZCineAndroid.so$'
+          cp "$app" dist/OpenZCine-Android-arm64-test.apk
+          cp "$wear" dist/OpenZCine-WearOS-test.apk
+          (cd dist && sha256sum *.apk > SHA256SUMS.txt)
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: openzcine-auto-apks
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 30
+
+  release:
+    name: Publish test release
+    needs: [sync, build]
+    if: needs.build.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: openzcine-auto-apks
+          path: dist
+      - name: Derive release tag
+        id: tag
+        env:
+          UPSTREAM_SHA: ${{ needs.sync.outputs.upstream_sha }}
+        run: |
+          set -euo pipefail
+          short="$(printf '%s' "$UPSTREAM_SHA" | cut -c1-12)"
+          echo "tag=upstream-$short" >> "$GITHUB_OUTPUT"
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          target_commitish: ${{ needs.sync.outputs.synced_sha }}
+          name: OpenZCine automated build ${{ steps.tag.outputs.tag }}
+          prerelease: true
+          generate_release_notes: false
+          body: |
+            Unofficial automatic build of erik-sutton95/OpenZCine.
+            Upstream main commit: ${{ needs.sync.outputs.upstream_sha }}.
+            Phone and Wear OS APKs are TEST/DEBUG-signed, not signed by the original publisher.
+            The signing certificate may change between builds: uninstalling the existing
+            app may be necessary to install an update. Official Play builds are separate.
+            No iOS device IPA is offered without Apple code signing.
+          files: dist/*
+          fail_on_unmatched_files: true
