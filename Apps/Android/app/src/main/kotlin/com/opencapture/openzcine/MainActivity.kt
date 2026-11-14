@@ -9,6 +9,7 @@ import com.opencapture.opencine.appkit.MonitorLaunchSplash
 import com.opencapture.opencine.appkit.MonitorAutomaticReportsOffer
 import com.opencapture.opencine.appkit.MonitorReportsOffer
 import com.opencapture.opencine.appkit.MonitorLaunchBrand
+import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.net.nsd.NsdManager
@@ -153,6 +154,7 @@ import com.opencapture.opencine.appkit.MonitorRemoteShutter
 import com.opencapture.openzcine.settings.LiveViewQualityBias
 import com.opencapture.openzcine.settings.LiveViewStreamPreset
 import com.opencapture.openzcine.settings.OperatorSettings
+import com.opencapture.openzcine.settings.AppLanguagePreferences
 import com.opencapture.openzcine.settings.OperatorSettingsScreen
 import com.opencapture.openzcine.settings.SetupStreamSettings
 import com.opencapture.openzcine.settings.ZLegalDocuments
@@ -198,6 +200,10 @@ class MainActivity : ComponentActivity() {
     /** The session and its owners, kept across recreation (an undeclared configuration change). */
     internal lateinit var root: AppRoot
         private set
+
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(AppLanguagePreferences.localizedContext(newBase))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen().setKeepOnScreenCondition { !launch.firstFrameDrawn }
