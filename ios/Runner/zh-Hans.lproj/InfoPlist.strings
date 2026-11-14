@@ -1,0 +1,6 @@
+/* Localized Apple system-permission prompts; the OS controls their display language. */
+"NSMotionUsageDescription" = "记录手机安装状态下的运动数据，用于 Gyroflow 稳定处理。";
+"NSCameraUsageDescription" = "OpenZCine 使用手机相机扫描尼康相机屏幕显示的 Wi-Fi 名称和密码，以便建立连接；在 iPad 上还可读取 USB 视频采集设备的画面。";
+"NSLocalNetworkUsageDescription" = "OpenZCine 需要访问本地 Wi-Fi 网络中的尼康相机，以获取实时取景画面并控制相机。";
+"NSLocationWhenInUseUsageDescription" = "OpenZCine 使用位置信息识别当前 Wi-Fi 网络，以连接尼康相机并在网络上传后恢复相机连接。";
+"NSPhotoLibraryAddUsageDescription" = "当你选择“保存到照片”时，OpenZCine 会将导出的视频保存到照片图库。";
