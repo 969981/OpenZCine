@@ -1073,6 +1073,7 @@ struct OperatorSettingsPanel: View {
     @Environment(\.openURL) private var openURL
     @State private var relayPasscodeDraft: String?
     @State private var reliabilityOptIn = ReliabilityDiagnostics.reporting.isOptedIn
+    @AppStorage("openzcine.appLanguage") private var appLanguage = "system"
 
     var body: some View {
         let _ = model.settingsAccount.accountRevision
@@ -1085,6 +1086,28 @@ struct OperatorSettingsPanel: View {
                 operatorSession: model.operatorSession, sourceIdentity: model.shell.monitor?.id)
         }
         .observeMonitorWindowGeometry()
+        .overlay(alignment: .bottomTrailing) {
+            if model.operatorSettingsTab == .system {
+                Menu {
+                    Picker("Language", selection: $appLanguage) {
+                        Text("Follow System").tag("system")
+                        Text("English").tag("en")
+                        Text("简体中文").tag("zh-Hans")
+                        Text("繁體中文").tag("zh-Hant")
+                    }
+                } label: {
+                    Label("Language", systemImage: "globe")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 11)
+                        .background(.black.opacity(0.85), in: Capsule())
+                }
+                .accessibilityIdentifier("settings.languagePicker")
+                .padding(.trailing, 22)
+                .padding(.bottom, 22)
+            }
+        }
         .onAppear {
             model.settingsAccount.bind(accountActions)
             model.settingsSupport.bind(supportActions)
