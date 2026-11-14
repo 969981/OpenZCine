@@ -1,0 +1,91 @@
+name: Chinese localization validation
+
+on:
+  push:
+    branches:
+      - feat/zh-hans-zh-hant-localization
+    paths:
+      - 'Apps/Android/app/src/main/**'
+      - 'Apps/Android/app/src/test/**'
+      - 'ios/Runner/**'
+      - 'ios/Runner.xcodeproj/project.pbxproj'
+      - 'scripts/check-localizations.py'
+      - '.github/workflows/i18n-validate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: i18n-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  resources:
+    name: Verify strings and placeholders
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate Chinese resource files
+        run: python3 scripts/check-localizations.py
+
+  android:
+    name: Android APK + locale tests
+    needs: resources
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Check out pinned OpenCine
+        run: ./scripts/checkout-opencine.sh
+      - name: Set up Android NDK r27c
+        uses: nttld/setup-ndk@ed92fe6cadad69be94a966a7ee3271275e62f779 # v1.6.0
+        with:
+          ndk-version: r27c
+          link-to-sdk: true
+      - name: Install Swift Android SDK
+        run: ./scripts/ci-install-swift-android.sh
+      - name: Compile and run Android JVM tests
+        working-directory: Apps/Android
+        env:
+          SWIFT_ANDROID_SDK_ID: swift-6.3.3-RELEASE_android
+        run: ./gradlew --no-daemon test :app:assembleDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: localized-android-debug
+          path: Apps/Android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+
+  ios:
+    name: iOS simulator build
+    needs: resources
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: maxim-lobanov/setup-xcode@ed7a3b1fda3918c0306d1b724322adc0b8cc0a90 # v1
+        with:
+          xcode-version: latest-stable
+      - name: Check out pinned OpenCine
+        run: ./scripts/checkout-opencine.sh
+      - name: Validate Apple strings with plutil
+        run: |
+          for file in ios/Runner/zh-{Hans,Hant}.lproj/{Localizable,InfoPlist}.strings; do
+            plutil -lint "$file"
+          done
+      - name: Compile localized iOS simulator app
+        run: |
+          xcodebuild -project ios/Runner.xcodeproj -scheme Runner \
+            -destination 'generic/platform=iOS Simulator' \
+            -skipMacroValidation -skipPackagePluginValidation \
+            CODE_SIGNING_ALLOWED=NO build
