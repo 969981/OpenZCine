@@ -4,10 +4,12 @@ import UIKit
 @main
 struct OpenZCineApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
+    @AppStorage("openzcine.appLanguage") private var appLanguage = "system"
 
     var body: some Scene {
         WindowGroup {
             NativeAppRoot()
+                .environment(\.locale, appLanguage == "system" ? .autoupdatingCurrent : Locale(identifier: appLanguage))
         }
     }
 }
