@@ -56,6 +56,9 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -348,7 +351,18 @@ internal fun OperatorSettingsScreen(
     )
     // Seeds the session once per requested landing tab, before the first frame draws.
     remember(operatorSession, initialTab) { initialTab?.also { operatorSession.settingsTab = it } }
-    MonitorOperatorSettingsScreen(configuration, assistSections, display, operatorSession, cacheOwner)
+    Box(Modifier.fillMaxSize()) {
+        MonitorOperatorSettingsScreen(configuration, assistSections, display, operatorSession, cacheOwner)
+        if (operatorSession.settingsTab == MonitorSettingsTab.SYSTEM) {
+            Box(
+                Modifier.align(Alignment.BottomEnd)
+                    .windowInsetsPadding(WindowInsets.safeDrawing)
+                    .padding(end = 16.dp, bottom = 12.dp),
+            ) {
+                AppLanguageMenu()
+            }
+        }
+    }
 }
 
 /** Actual broadcast service observations and admitted native actions. */
@@ -507,3 +521,38 @@ private fun clearResultLabel(context: Context, result: MediaCacheClearResult): S
                 cacheSizeLabel(context, result.preservedIncompleteBytes),
             )
     }
+
+/**
+ * The shared OpenCine System page is library-owned; expose this app-only locale setting
+ * on that page without modifying the dependency or adding an unrelated global overlay.
+ */
+@Composable
+private fun AppLanguageMenu() {
+    val context = LocalContext.current
+    var expanded by remember { mutableStateOf(false) }
+    val selected = remember(context) { AppLanguagePreferences.selected(context) }
+    fun label(language: AppLanguage): String = context.getString(
+        when (language) {
+            AppLanguage.SYSTEM -> R.string.app_language_system
+            AppLanguage.ENGLISH -> R.string.app_language_english
+            AppLanguage.SIMPLIFIED_CHINESE -> R.string.app_language_simplified
+            AppLanguage.TRADITIONAL_CHINESE -> R.string.app_language_traditional
+        },
+    )
+    Button(onClick = { expanded = true }) {
+        Text(stringResource(R.string.app_language_title) + ": " + label(selected))
+    }
+    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+        AppLanguage.entries.forEach { language ->
+            DropdownMenuItem(
+                text = { Text(label(language)) },
+                onClick = {
+                    expanded = false
+                    if (AppLanguagePreferences.select(context, language)) {
+                        context.findHostActivity()?.recreate()
+                    }
+                },
+            )
+        }
+    }
+}
