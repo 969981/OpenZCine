@@ -1,0 +1,6 @@
+/* Localized Apple system-permission prompts; the OS controls their display language. */
+"NSMotionUsageDescription" = "記錄手機安裝狀態下的動作資料，用於 Gyroflow 穩定處理。";
+"NSCameraUsageDescription" = "OpenZCine 使用手機相機掃描 Nikon 相機螢幕上的 Wi-Fi 名稱和密碼以建立連線；在 iPad 上也可讀取 USB 影像擷取裝置的畫面。";
+"NSLocalNetworkUsageDescription" = "OpenZCine 需要存取區域 Wi-Fi 網路中的 Nikon 相機，以取得即時取景畫面及控制相機。";
+"NSLocationWhenInUseUsageDescription" = "OpenZCine 使用定位資訊辨識目前的 Wi-Fi 網路，以連接 Nikon 相機，並在網路上傳後恢復相機連線。";
+"NSPhotoLibraryAddUsageDescription" = "當你選擇「儲存到照片」時，OpenZCine 會將匯出的影片儲存到照片圖庫。";
