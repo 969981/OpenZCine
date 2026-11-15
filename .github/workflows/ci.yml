@@ -468,7 +468,7 @@ jobs:
     needs: changes
     # Skip the Gradle build when nothing under Apps/Android changed.
     if: ${{ needs.changes.outputs.android == 'true' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     # Three Gradle invocations on parallel runners instead of one serial step. Together they
     # schedule exactly the task graph of `just android-check` plus the release closure (docs/ci.md);
