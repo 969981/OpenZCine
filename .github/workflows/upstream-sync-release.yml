@@ -1,17 +1,12 @@
 name: Upstream sync and automatic Android release
 
 on:
-  schedule:
-    - cron: '43 */6 * * *'
   workflow_dispatch:
     inputs:
       force_build:
         description: Build even if upstream has no new commits
         type: boolean
         default: true
-  push:
-    paths:
-      - '.github/workflows/upstream-sync-release.yml'
 
 permissions:
   contents: read
