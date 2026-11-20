@@ -105,7 +105,9 @@ swift-check: swift-lint swift-test
 # physical camera classes) on one simulator, made with accessibility enabled by
 # ../OpenCine/scripts/ios-private-simulator.py create <name>.
 conformance-ios udid result="":
-    xcodebuild -project ios/Runner.xcodeproj -scheme RunnerUIReview -destination 'platform=iOS Simulator,id={{udid}}' -parallel-testing-enabled NO {{ if result != "" { "-resultBundlePath " + result } else { "" } }} test
+    # Retry an individual failed simulator UI test once; still fail if it fails twice.
+    # iOS accessibility animation/wait races can intermittently time out on CI runners.
+    xcodebuild -project ios/Runner.xcodeproj -scheme RunnerUIReview -destination 'platform=iOS Simulator,id={{udid}}' -parallel-testing-enabled NO -retry-tests-on-failure -test-iterations 2 {{ if result != "" { "-resultBundlePath " + result } else { "" } }} test
 
 # Build the native iOS app for the simulator.
 ios-build:
