@@ -60,7 +60,23 @@ jobs:
           if [ "$branch_current" != true ]; then
             git checkout -B bot/pin-core origin/main
             sed -i -E "s/^OpenCine .*/OpenCine ${core_sha}/" opencine-pins.txt
-            git add opencine-pins.txt
+            # OpenCine is an included Gradle build. Different AGP versions across the
+            # app and the pinned build cause AgpVersionCompatibilityRule failures.
+            core_catalog="$RUNNER_TEMP/opencine-versions.toml"
+            curl --fail --silent --show-error --location --retry 3 \
+              "https://raw.githubusercontent.com/erik-sutton95/OpenCine/${core_sha}/Android/gradle/libs.versions.toml" \
+              -o "$core_catalog"
+            core_agp=$(sed -nE 's/^agp = "([0-9]+\.[0-9]+\.[0-9]+)"$/\1/p' "$core_catalog" | head -1)
+            if [ -z "$core_agp" ]; then
+              echo "::error::Could not read the Android Gradle plugin version from OpenCine ${core_short}"
+              exit 1
+            fi
+            if ! grep -qE '^agp = "[0-9]+\.[0-9]+\.[0-9]+"$' Apps/Android/gradle/libs.versions.toml; then
+              echo "::error::Unexpected Android Gradle plugin format in app catalog"
+              exit 1
+            fi
+            sed -i -E "s/^agp = \"[0-9]+\.[0-9]+\.[0-9]+\"$/agp = \"${core_agp}\"/" Apps/Android/gradle/libs.versions.toml
+            git add opencine-pins.txt Apps/Android/gradle/libs.versions.toml
 
             export GIT_AUTHOR_NAME="github-actions[bot]"
             export GIT_AUTHOR_EMAIL="41898283+github-actions[bot]@users.noreply.github.com"
